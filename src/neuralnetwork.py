@@ -43,7 +43,7 @@ def forward_propagation(thetas, X, m=None):
     for i in range(1, l + 1):
         theta = thetas[i - 1]
         zi = np.dot(ai, np.transpose(theta))
-        ai = sigmoid(add_intercept(zi, m))        
+        ai = add_intercept(sigmoid(zi), m)
         z.append(zi)
         a.append(ai)
     result = ai[:,1:]
@@ -89,7 +89,7 @@ def unpack_theta(nn_params, layer_sizes):
             yield last_tot, tot, l_sizes[i+1], l_sizes[i] + 1
             last_tot = tot
     
-    return [np.reshape(nn_params[:,i:j], (cols, rows)) for i, j, cols, rows in itr(layer_sizes)]
+    return [np.reshape(nn_params[:,i:j], (cols, rows), order='F') for i, j, cols, rows in itr(layer_sizes)]
 
 
 def pack_theta_grad(D):

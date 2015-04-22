@@ -94,7 +94,7 @@ class TestNeuralnetwork(unittest.TestCase):
         y = base.ml2nparray('[4; 2; 3]')
         J, _ = neuralnetwork.costfunction(nn_params=nn_params, layer_sizes=[2], X=X, y=y, 
                                             lmbda=3, input_layer_size=2, num_labels=4)
-        self.assertEqual(int(J*10000)/10000, 16.457)
+        self.assertEqual(int(J*1000)/1000, 16.456)
 
 
 if __name__ == "__main__":
