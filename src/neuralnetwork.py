@@ -3,7 +3,7 @@ Created on 10 apr. 2015
 
 @author: Roel van den Berg; roelvdberg_*at*_gmail_*dot*_com
 
-Port to Python from my Octave code for the Stanford Machine Learning course: https://www.coursera.org/course/ml
+Port to Python from my Octave code for the Stanford Machine Learning course (programming assignments): https://www.coursera.org/course/ml
 '''
 
 from src.base import sigmoid, add_intercept
@@ -75,19 +75,20 @@ def cf_regularize(thetas):
         theta = thetas[0][:,1:]
         result = sum(sum(np.square(theta)))
         result += cf_regularize(thetas[1:])
-    except IndexError:
+    except (TypeError, IndexError):
         result = 0
+    return result
 
 
 def unpack_theta(nn_params, layer_sizes):
-    def itr(layer_sizes):
+    def itr(l_sizes):
         tot = 0
         last_tot = 0
-        for i in range(len(layer_sizes)-1):
-            tot += layer_sizes[i+1] * (layer_sizes[i] + 1)
-            yield last_tot, tot, layer_sizes[i+1], layer_sizes[i] + 1
+        for i in range(len(l_sizes)-1):
+            tot += l_sizes[i+1] * (l_sizes[i] + 1)
+            yield last_tot, tot, l_sizes[i+1], l_sizes[i] + 1
             last_tot = tot
-
+    
     return [np.reshape(nn_params[:,i:j], (cols, rows)) for i, j, cols, rows in itr(layer_sizes)]
 
 
@@ -122,13 +123,15 @@ def costfunction(nn_params, layer_sizes, X, y, lmbda=0,
     # apply forward propagation and initialize y as binary array
     result, z, a = forward_propagation(thetas, X, m)
     Q = eye(num_labels)
-    y = Q[y,:]
+    y = Q[y.flatten().astype(int)-1,:]
     
     # Calculate cost J based on forward propagation and the thetagradient
     # grad. 
-    J = sum(sum(-y * log(result) - (-y + 1) * log(1 - result)))/m + cf_regularize(thetas) * lmbda/(2*m)
-    D = back_propagation(z, a, y, thetas, m, lmbda)
-    grad = pack_theta_grad(D)
+    J = sum(sum(-y * np.log(result) - (-y + 1) * np.log(1 - result)))/m + cf_regularize(thetas) * lmbda/(2*m)
+    #D = back_propagation(z, a, y, thetas, m, lmbda)
+    #grad = pack_theta_grad(D)
     
-    return J, grad
+    return J, None#, grad
 
+def nn_optimize(initial_theta, X, y, lmbda=0):
+    pass

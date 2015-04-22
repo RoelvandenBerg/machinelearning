@@ -3,12 +3,12 @@ Created on 9 apr. 2015
 
 @author: Roel van den Berg; roelvdberg_*at*_gmail_*dot*_com
 
-Port to Python from my Octave code for the Stanford Machine Learning course: https://www.coursera.org/course/ml
+Port to Python from my Octave code for the Stanford Machine Learning course  (programming assignments): https://www.coursera.org/course/ml
 '''
 
-from MachineLearning.base import sigmoid, add_intercept
+from src.base import sigmoid #, add_intercept
 import numpy as np
-#from scipi import optimize
+from scipy import optimize
 
 
 def predict(theta, X):
@@ -24,11 +24,12 @@ def costfunction(theta, X, y, lmbda=0):
     m = len(y)
     thetaslice = np.append(0, theta[1:])
     Xtheta = sigmoid(np.dot(X, theta))
-    J = sum(-y * np.log(Xtheta) - (1-y) * np.log(1 - Xtheta))/m + sum(np.square(thetaslice))*lmbda/(2*m)
-    grad = sum((Xtheta-y)*X)/m+thetaslice*lmbda/m
+    J = sum(-y * np.log(Xtheta) - (1 - y) * np.log(1 - Xtheta))/m + sum(np.square(thetaslice)) * lmbda / (2 * m)
+    grad = sum((Xtheta - y) * X) / m + thetaslice * lmbda/m
     return J, grad
 
 def oneVsAll(X, y, num_labels, lmbda):
     pass
 
-
+def lr_optimize(initial_theta, X, y, lmbda=0):
+    pass

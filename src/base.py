@@ -8,6 +8,7 @@ Port to Python from my Octave code for the Stanford Machine Learning course: htt
 
 from math import exp
 import numpy as np
+import re
 
 def sigmoid(z):
     return 1/(1 + exp(-z))
@@ -24,3 +25,17 @@ def add_intercept(X, m=None):
     return np.hstack([ones, X])
 
 
+def ml2nparray(*args):
+    
+    def ml2np(string):
+        string = string.strip('[]')
+        l = [[float(y) for y in re.split(' |,', x) if y != ''] for x in string.split(';')]
+        return np.array(l)
+    
+    try:
+        result = ml2np(*args)
+    except TypeError:
+        result = []
+        for arg in args: result.append(ml2np(arg)) 
+
+    return result
