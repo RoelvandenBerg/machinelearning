@@ -6,9 +6,9 @@ Created on 10 apr. 2015
 Port to Python from my Octave code for the Stanford Machine Learning course: https://www.coursera.org/course/ml
 '''
 
-from machinelearning.base import sigmoid, add_intercept
+from src.base import sigmoid, add_intercept
 import numpy as np
-from scipi import optimize, eye
+from scipy import optimize, eye
 from math import log
 
 def sigmoid_gradient(z):
