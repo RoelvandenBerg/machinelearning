@@ -6,5 +6,5 @@ https://www.coursera.org/course/ml
 
 required packages: 
 - numpy
-- scipi
+- scipy
 
