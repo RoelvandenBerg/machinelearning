@@ -31,5 +31,5 @@ def costfunction(theta, X, y, lmbda=0):
 def oneVsAll(X, y, num_labels, lmbda):
     pass
 
-def lr_optimize(initial_theta, X, y, lmbda=0):
-    pass
+def lr_optimize(initial_theta, X, y, lmbda=0, method='CG'):
+    return optimize.minimize(costfunction, initial_theta, (X, y, lmbda), method, jac=True)

@@ -77,25 +77,48 @@ class TestLogisticregression(unittest.TestCase):
         
 
 class TestNeuralnetwork(unittest.TestCase):
-
+    nnparams = np.array([x/10 for x in range(1,19)])
+    X = cos(base.ml2nparray('[1 2 ; 3 4 ; 5 6]'))
+    y = base.ml2nparray('[4; 2; 3]')
+    lmbda = 3
 
     def test_sigmoid_gradient(self):
         a1 = npround(neuralnetwork.sigmoid_gradient(np.array([2, 3])))
         r1 = np.array([0.10499, 0.04518])
         a2 = npround(neuralnetwork.sigmoid_gradient([[-2, 0], [4, 999999], [-1, 1]]))
         r2 = np.array([[0.10499, 0.25000], [0.01766, 0.0], [0.19661, 0.19661]])
-        itr = [(a1, r1), (a2, r2)]
+        input3 = base.ml2nparray('[-2 0; 4 999999; -1 1]')
+        a3 = npround(neuralnetwork.sigmoid_gradient(input3))
+        r3 = base.ml2nparray('[0.10499 0.25000; 0.01766 0.00000; 0.19661 0.19661]')
+        itr = [(a1, r1), (a2, r2), (a3, r3)]
         for answer, sought_result in itr:
             self.assertTrue((answer == sought_result).all())
     
     def test_regularized_costfunction(self):
-        nn_params = np.array([[x/10 for x in range(1,19)]])
-        X = cos(base.ml2nparray('[1 2 ; 3 4 ; 5 6]'))
-        y = base.ml2nparray('[4; 2; 3]')
-        J, _ = neuralnetwork.costfunction(nn_params=nn_params, layer_sizes=[2], X=X, y=y, 
-                                            lmbda=3, input_layer_size=2, num_labels=4)
+        grad_result = np.array([0.76614, 0.97990, 0.27246, 0.36416, 0.47507, 
+                                0.54614, 0.88342, 0.56876, 0.58467, 0.59814, 
+                                1.55931, 1.54462, 1.55631, 1.71189, 1.97834, 
+                                1.96892, 1.95977, 2.12233])
+        J, grad = neuralnetwork.costfunction(nn_params=self.nnparams, layer_sizes=[2], X=self.X, 
+                                             y=self.y, lmbda=self.lmbda, input_layer_size=2, num_labels=4)
         self.assertEqual(int(J*1000)/1000, 16.456)
+        self.assertTrue((npround(grad) == grad_result).all())
 
+        J, grad = neuralnetwork.costfunction(nn_params=self.nnparams, layer_sizes=[2, 2, 4],  
+                                             X=self.X, y=self.y, lmbda=self.lmbda)
+        self.assertEqual(int(J*1000)/1000, 16.456)
+        self.assertTrue((npround(grad) == grad_result).all())
+    
+    def test_optimize_and_rand_init(self):     
+        result_theta = np.array([-7.15389779e-01,  -9.18476365e-01,  -6.74983060e-06,   4.06540433e-06,
+                                 -7.70655209e-06,   4.54637886e-06,  -1.24218572e+01,  -6.93151748e-01,
+                                 -6.93152450e-01,  -6.93152026e-01,  -1.32334340e-06,   1.08626877e-05,
+                                 -9.19086431e-06,  -6.83584583e-07,  -1.14949724e-06,  -2.84416399e-06,
+                                  3.05967565e-06,    6.42441311e-07])
+        
+        opt_theta = neuralnetwork.nn_optimize([2, 2, 4], X=self.X, y=self.y, lmbda=self.lmbda, initial_theta=self.nnparams, method='CG', epsilon=0.01)
+
+        self.assertTrue((npround(result_theta) == npround(opt_theta.x)).all())
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

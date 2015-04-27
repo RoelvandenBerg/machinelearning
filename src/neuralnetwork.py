@@ -9,11 +9,12 @@ Port to Python from my Octave code for the Stanford Machine Learning course (pro
 from src.base import sigmoid, add_intercept
 import numpy as np
 from scipy import optimize, eye
-from math import log
+
 
 def sigmoid_gradient(z):
     sg = sigmoid(z)
     return sg * (1 - sg)
+
 
 def forward_propagation(thetas, X, m=None):
     """
@@ -33,15 +34,15 @@ def forward_propagation(thetas, X, m=None):
     if not m:
         m = len(X)
     l = len(thetas)
-    a = [None]
-    z = [None]
+    a = []
+    z = [None] # 'z' Starts with None, since the input layer does not have to be calculated, but is given directly.  
     ai = add_intercept(X, m)
     a.append(ai)
     
     # walk through every layer, calculate a and z for each layer and return
-    # the outcome and intermidiate outcomes for each layer a and z  
-    for i in range(1, l + 1):
-        theta = thetas[i - 1]
+    # the outcome and intermediate outcomes for each layer a and z  
+    for i in range(l):
+        theta = thetas[i]
         zi = np.dot(ai, np.transpose(theta))
         ai = add_intercept(sigmoid(zi), m)
         z.append(zi)
@@ -53,19 +54,19 @@ def forward_propagation(thetas, X, m=None):
 
 
 def back_propagation(z, a, y, thetas, m, lmbda):
-    max_l = len(thetas) - 1
-    dl = a[max_l] - y
-    d = [None] * (max_l - 1) + dl
-    D = [None] * max_l
+    max_l = len(a) - 1 # max index of a
+    dl = a[max_l] - y # Error between forward propagation result and supposed  outcome  
+    d = [None] * (max_l - 2) + [dl]
+    D = []
     
-    for l in range(max_l, 0, -1):
-        dl = np.dot(dl, thetas[l][:,1:]) * sigmoid_gradient(z[l])
-        d[l] = dl
+    for l in range(max_l - 2, 0, -1): # indexing should start at 2 lower than the max index of a since the in- and output layer are excluded
+        dl = np.dot(dl, thetas[l][:,1:]) * sigmoid_gradient(z[l]) 
+        d[l-1] = dl
     
-    for l in range(max_l):
-        theta = thetas[l]
-        theta[:,0] = 0
-        D[l] = (np.transpose(d[l+1]) * a[l]) / m + lmbda/m *theta
+    for l in range(max_l - 1):
+        t = thetas[l]
+        theta = add_intercept(t[:,1:], ones=False) # first thetas are not used for the computation and are thus set to zero
+        D.append(np.dot(np.transpose(d[l]), a[l])/ m  + lmbda/m *theta)
 
     return D
 
@@ -88,12 +89,12 @@ def unpack_theta(nn_params, layer_sizes):
             tot += l_sizes[i+1] * (l_sizes[i] + 1)
             yield last_tot, tot, l_sizes[i+1], l_sizes[i] + 1
             last_tot = tot
-    
-    return [np.reshape(nn_params[:,i:j], (cols, rows), order='F') for i, j, cols, rows in itr(layer_sizes)]
+
+    return [np.reshape(nn_params[i:j], (cols, rows), order='F') for i, j, cols, rows in itr(layer_sizes)]
 
 
 def pack_theta_grad(D):
-    return np.hstack([d.flatten('F') for d in D])
+    return np.hstack(np.reshape(d, -1, 'F') for d in D)
 
 
 def costfunction(nn_params, layer_sizes, X, y, lmbda=0, 
@@ -116,22 +117,33 @@ def costfunction(nn_params, layer_sizes, X, y, lmbda=0,
         layer_sizes = layer_sizes + [num_labels]
     else:
         num_labels = layer_sizes[-1]
-    
+
     thetas = unpack_theta(nn_params, layer_sizes)
     m = len(X)
-    
     # apply forward propagation and initialize y as binary array
     result, z, a = forward_propagation(thetas, X, m)
     Q = eye(num_labels)
     y = Q[y.flatten().astype(int)-1,:]
-    
-    # Calculate cost J based on forward propagation and the thetagradient
+    # Calculate cost J based on forward propagation and the theta gradient
     # grad. 
-    J = sum(sum(-y * np.log(result) - (-y + 1) * np.log(1 - result)))/m + cf_regularize(thetas) * lmbda/(2*m)
-    #D = back_propagation(z, a, y, thetas, m, lmbda)
-    #grad = pack_theta_grad(D)
-    
-    return J, None#, grad
+    cost = sum(sum(-y * np.log(result) - (-y + 1) * np.log(1 - result)))/m
+    regularization = cf_regularize(thetas) * lmbda/(2*m)
+    J = cost + regularization
 
-def nn_optimize(initial_theta, X, y, lmbda=0):
-    pass
+    D = back_propagation(z, a, y, thetas, m, lmbda)
+    grad = pack_theta_grad(D)
+    
+    return J, grad
+
+
+def rand_init(layer_sizes, epsilon=0.01):
+    epsilon *= 2
+    size = sum((layer_sizes[i]+1)*layer_sizes[i+1] for i in range(len(layer_sizes)-1))
+    return (np.random.rand(size) - 0.5)* epsilon
+
+
+def nn_optimize(layer_sizes, X, y, lmbda=0, initial_theta=None, method='CG', epsilon=0.01):
+    if initial_theta == None:
+        initial_theta = rand_init(layer_sizes, epsilon)
+
+    return optimize.minimize(costfunction, initial_theta, (layer_sizes, X, y, lmbda), method, jac=True)

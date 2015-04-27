@@ -16,13 +16,16 @@ def sigmoid(z):
 sigmoid = np.vectorize(sigmoid)
 
 
-def add_intercept(X, m=None):
+def add_intercept(X, m=None, ones=True):
     if all(X[:,0]==1):
         return X
     if not m:
         m = len(X)
-    ones = np.ones((m,1))
-    return np.hstack([ones, X])
+    if ones:
+        ones_or_zeros = np.ones((m,1))
+    else:
+        ones_or_zeros = np.zeros((m,1))
+    return np.hstack([ones_or_zeros, X])
 
 
 def ml2nparray(*args):
