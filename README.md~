@@ -1,10 +1,11 @@
 # machinelearning
 
-This is still a work in progress. 
-The goal is to create a port to Python from my Octave code for the Stanford Machine Learning course: 
+This is a port to Python from (part of) my Octave code for the Stanford Machine Learning course: 
 https://www.coursera.org/course/ml
 
 required packages: 
 - numpy
 - scipy
 
+Still to add:
+- A one-versus-all function that makes it possible to use logistic regression on multiple dimensions
